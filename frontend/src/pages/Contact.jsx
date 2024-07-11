@@ -169,9 +169,9 @@ const Contact = () => {
     mutationFn: async (formData) => {
       const { file, ...rest } = formData;
       const formDataForUpload = new FormData();
-      formDataForUpload.append("file", file); // Append file to FormData
+      formDataForUpload.append("file", file); 
 
-      // Upload file first
+      
       const response = await fetch(uploadURL, {
         method: "POST",
         headers: {'Content-Type': 'multipart/form-data'},
@@ -182,13 +182,13 @@ const Contact = () => {
         throw new Error("File upload failed");
       }
 
-      // Once file is uploaded, proceed to submit other form data
+      
       const data = await fetch(URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(rest), // Submit rest of the data as JSON
+        body: JSON.stringify(rest), 
       });
 
       return data.json();
