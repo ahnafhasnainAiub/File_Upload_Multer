@@ -1,20 +1,22 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/mediusware";
+const MONGO_URL =
+  "mongodb+srv://ema-john:MoaROMbmHDXacTDM@cluster0.yq19m.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+// const MONGO_URL = "mongodb://127.0.0.1:27017/mediusware";
 
 //Set up MongoDB connection
 
 main()
- .then(() => {
+  .then(() => {
     console.log("Connected to DB");
- })
- .catch((err) => {
+  })
+  .catch((err) => {
     console.log(err);
- });
+  });
 
- async function main(){
-    await mongoose.connect(MONGO_URL);
- }
+async function main() {
+  await mongoose.connect(MONGO_URL);
+}
 
 //Get Default Connection
 
@@ -22,18 +24,16 @@ const db = mongoose.connection;
 
 //Define Event Listeners
 
-db.on('Connected', () => {
-    console.log("Connected to MongoDB server");
+db.on("Connected", () => {
+  console.log("Connected to MongoDB server");
 });
 
-
-db.on('error', () => {
-    console.log("MongoDB Connection Error", err);
+db.on("error", () => {
+  console.log("MongoDB Connection Error", err);
 });
 
-
-db.on('disconnected', () => {
-    console.log("MongoDB server disconnected");
-})
+db.on("disconnected", () => {
+  console.log("MongoDB server disconnected");
+});
 
 module.exports = db;

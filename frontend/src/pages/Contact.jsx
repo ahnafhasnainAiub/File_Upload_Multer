@@ -1,3 +1,5 @@
+/* eslint-disable no-unsafe-optional-chaining */
+/* eslint-disable no-unused-vars */
 import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useMutation } from "@tanstack/react-query";
@@ -17,12 +19,15 @@ const Contact = () => {
     file: null,
   };
 
-  const URL = "http://localhost:8000/contacts";
-  const uploadURL = "http://localhost:8000/contacts/upload"; 
+  const serverUrl = "http://localhost:8000/contacts";
+  const uploadURL = "http://localhost:8000/contacts/upload";
 
   const navigate = useNavigate();
 
   const [user, setUser] = useState(initialValues);
+
+  const [previewImage, setPreviewImage] = useState("");
+  const [uploadImage, setUploadImage] = useState("");
 
   const [valid, setValid] = useState({
     name: { isValid: true, message: "" },
@@ -60,19 +65,15 @@ const Contact = () => {
   };
 
   const handleFileChange = (e) => {
-
-    if(e?.target?.files?.length){
-      const file = e?.target?.files[0];
-      // let url = newURL.createObjectURL(e.target.files);
-      // console.log({file,url});
+    if (e?.target?.files?.length) {
+      const file = e.target.files[0];
       setUser((prevUser) => ({
         ...prevUser,
         file,
-        // file: file?.name ?? "",
-        // file: URL.createObjectURL(file), 
       }));
+
+      setUploadImage(URL.createObjectURL(file));
     }
-   
   };
 
   const validate = () => {
@@ -136,8 +137,6 @@ const Contact = () => {
     return Object.keys(errors).every((key) => errors[key].isValid);
   };
 
-
-
   // Using useMutation
   // const mutation = useMutation({
   //   mutationFn: async (formData) => {
@@ -163,18 +162,15 @@ const Contact = () => {
   //     console.error("Submission error:", error.message);
   //   },
   // });
-  
-  const mutation = useMutation({
 
+  const mutation = useMutation({
     mutationFn: async (formData) => {
       const { file, ...rest } = formData;
       const formDataForUpload = new FormData();
-      formDataForUpload.append("file", file); 
+      formDataForUpload.append("file", file);
 
-      
       const response = await fetch(uploadURL, {
         method: "POST",
-        headers: {'Content-Type': 'multipart/form-data'},
         body: formDataForUpload,
       });
 
@@ -182,13 +178,21 @@ const Contact = () => {
         throw new Error("File upload failed");
       }
 
-      
-      const data = await fetch(URL, {
+      const imageData = await response.json();
+
+      if (imageData?.file) {
+        const { filename } = imageData?.file;
+        const path = "http://localhost:8000/" + filename;
+        console.log(path);
+        setPreviewImage(path);
+      }
+
+      const data = await fetch(serverUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(rest), 
+        body: JSON.stringify(rest),
       });
 
       return data.json();
@@ -203,8 +207,6 @@ const Contact = () => {
       console.error("Submission error:", error.message);
     },
   });
-
-
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -248,7 +250,6 @@ const Contact = () => {
               <div className="bg-[#F9FAFB] px-4 pb-3 rounded">
                 <div>
                   <div className="md:flex md:gap-3">
-
                     {/* User Name */}
                     <div className="flex flex-col md:w-full">
                       <label htmlFor="name" className="mt-4">
@@ -364,8 +365,8 @@ const Contact = () => {
                 </div>
 
                 <div>
-                 {/* Services */}
-                <div className="mt-4">
+                  {/* Services */}
+                  <div className="mt-4">
                     <div className="mb-4">
                       <label htmlFor="services">
                         <span className="font-medium mr-1 text-base">
@@ -411,9 +412,9 @@ const Contact = () => {
                         {valid.service.message}
                       </span>
                     )}
-                 </div>
-                  
-                 {/* Budget */}
+                  </div>
+
+                  {/* Budget */}
                   <div className="mt-5">
                     <div>
                       <label htmlFor="budget">
@@ -423,7 +424,6 @@ const Contact = () => {
                         (Optional)
                       </label>
                     </div>
-                   
 
                     <div className="mt-4 font-medium">
                       {[
@@ -456,8 +456,8 @@ const Contact = () => {
                       )}
                     </div>
                   </div>
-                
-                 {/* Details */}
+
+                  {/* Details */}
                   <div className="text-base mt-4">
                     <div className="mb-4">
                       <label htmlFor="queries" className="form-label">
@@ -492,8 +492,8 @@ const Contact = () => {
                       )}
                     </div>
                   </div>
-                 
-                 {/* File Uploader */}
+
+                  {/* File Uploader */}
                   <div className="mb-4">
                     <div>
                       <label htmlFor="file">
@@ -505,7 +505,7 @@ const Contact = () => {
                     <div className="flex items-center justify-between mb-3 border border-gray-300 rounded-lg p-2 bg-[#FFFFFF]">
                       <span className="file-name w-[250px] rounded p-1 overflow-hidden truncate">
                         {user.file
-                          ? user.file
+                          ? user?.file?.name
                           : "(Brief, idea, branding guideline, old design....)"}
                       </span>
 
@@ -554,7 +554,6 @@ const Contact = () => {
                       </p>
                     )}
                   </div>
-
                 </div>
               </div>
 
@@ -570,7 +569,6 @@ const Contact = () => {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
 
@@ -586,7 +584,20 @@ const Contact = () => {
           <Inquery />
         </div>
       </div>
-      <div></div>
+      <div className="flex gap-4 ">
+        {uploadImage && (
+          <div className="flex flex-col items-center gap-2">
+            <p>Uploaded Image</p>
+            <img width={"100"} src={uploadImage} />
+          </div>
+        )}
+        {previewImage && (
+          <div className="flex flex-col items-center gap-2">
+            <p>Server Image</p>
+            <img width={"100"} src={previewImage} />
+          </div>
+        )}
+      </div>
     </section>
   );
 };
